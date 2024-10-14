@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Chatbot</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/table.css">
+  <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/production-0.1.0.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="images/cloudy.png" alt="Weather Logo" class="logo">
+    <ul>
+      <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="tables.html"><i class="fas fa-table"></i> Table</a></li>
+    </ul>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="weather-search">
+      <input type="text" id="city-input" placeholder="Enter city name">
+      <span class="pin-icon" id="geolocation-btn"><i class="fas fa-map-marker-alt"></i></span>
+    </div>
+    <span class="profile-icon"><i class="fas fa-user"></i></span>
+
+    <!-- Panels Container -->
+    <div class="panels-container">
+      <!-- Left Panel: 5-Day Weather Forecast -->
+      <div class="left-panel">
+        <h2>5-Day Weather Forecast</h2>
+        <div class="forecast-container">
+          <table id="weather-table">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Date</th>
+                <th>Temperature</th>
+                <th>High/Low</th>
+                <th>Condition</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Table rows will be populated here -->
+            </tbody>
+          </table>
+          <div class="pagination">
+            <button id="prev-page"><i class="fas fa-chevron-left"></i></button>
+            <button id="next-page"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Chatbot -->
+      <div class="right-panel">
+        <h2>Chatbot</h2>
+        <div class="chatbot-container">
+          <!-- Chatbot UI will be implemented here -->
+          <div class="chat-window">
+            <div class="chat-messages"></div>
+            <div class="chat-input-container">
+              <input type="text" id="chat-input" placeholder="Ask a question...">
+              <button id="send-chat-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/table.js"></script>
+</body>
+
+</html>
