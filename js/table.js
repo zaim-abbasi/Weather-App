@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   const apiKey = 'a7b7da5beed5ede7c6186250d2f136ac'; // Replace with your OpenWeatherMap API key
+  const geminiApiKey = 'AIzaSyBk1QdUe083ynpjvEuXSJR2QIwRG2963w4'; // Replace with your Gemini API key
   const cityInput = document.getElementById('city-input');
   const geolocationBtn = document.getElementById('geolocation-btn');
   const weatherTable = document.getElementById('weather-table');
@@ -174,12 +175,12 @@ document.addEventListener('DOMContentLoaded', function () {
           forecastData = aggregateForecastData(data.list);
           displayForecast(currentPage);
         } else {
-          alert('Unable to fetch default weather data');
+          // alert('Unable to fetch default weather data');
         }
       })
       .catch(error => {
         console.error('Error fetching default weather data:', error);
-        alert('Unable to fetch default weather data');
+        // alert('Unable to fetch default weather data');
       });
   }
 
@@ -198,33 +199,64 @@ document.addEventListener('DOMContentLoaded', function () {
   function sendChatMessage() {
     const question = chatInput.value.trim();
     if (question !== '') {
-      const response = processChatbotQuestion(question);
       displayChatbotMessage(question, 'user');
-      displayChatbotMessage(response, 'bot');
+      processChatbotQuestion(question);
       chatInput.value = '';
     }
   }
 
   function processChatbotQuestion(question) {
-    const lowerCaseQuestion = question.toLowerCase();
-
-    if (lowerCaseQuestion.includes('highest temperature')) {
-      const maxTemp = Math.max(...forecastData.map(data => data.maxTemp));
-      return `The highest temperature this week is ${maxTemp}°C.`;
-    } else if (lowerCaseQuestion.includes('lowest temperature')) {
-      const minTemp = Math.min(...forecastData.map(data => data.minTemp));
-      return `The lowest temperature this week is ${minTemp}°C.`;
-    } else if (lowerCaseQuestion.includes('average temperature')) {
-      const avgTemp = forecastData.reduce((sum, data) => sum + (data.maxTemp + data.minTemp) / 2, 0) / forecastData.length;
-      return `The average temperature this week is ${avgTemp.toFixed(2)}°C.`;
-    } else if (lowerCaseQuestion.includes('temperature range') || lowerCaseQuestion.includes('highest, lowest, and average temperature')) {
-      const maxTemp = Math.max(...forecastData.map(data => data.maxTemp));
-      const minTemp = Math.min(...forecastData.map(data => data.minTemp));
-      const avgTemp = forecastData.reduce((sum, data) => sum + (data.maxTemp + data.minTemp) / 2, 0) / forecastData.length;
-      return `The highest temperature this week is ${maxTemp}°C, the lowest is ${minTemp}°C, and the average is ${avgTemp.toFixed(2)}°C.`;
-    } else {
-      return "I'm sorry, I don't understand that question. Please ask about the highest, lowest, or average temperature.";
+    // Clear chat history if the '/clear' command is issued
+    if (question.toLowerCase().includes('/clear')) {
+      chatMessages.innerHTML = '';
+      return;
     }
+
+    // Prepare the payload for the API call
+    const payload = {
+      contents: [
+        {
+          parts: [
+            {
+              text: question
+            }
+          ]
+        }
+      ]
+    };
+
+    // Make the API call to the Gemini API
+    fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload) // Convert the payload to JSON
+    })
+      .then(response => {
+        // Check if the response is OK (status code 200-299)
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+        return response.json(); // Parse the JSON response
+      })
+      .then(data => {
+        console.log("API Response:", data); // Log full API response
+
+        // Check if data contains the expected fields
+        if (!data || !data.contents || !data.contents[0].parts || !data.contents[0].parts[0].text) {
+          throw new Error('Invalid response format from API');
+        }
+
+        // Extract the generated text response
+        const generatedResponse = data.contents[0].parts[0].text;
+        displayChatbotMessage(generatedResponse, 'bot'); // Display the generated response
+      })
+      .catch(error => {
+        // Catch errors from the API call
+        console.error('Error processing API request:', error);
+        displayChatbotMessage('Sorry, I am having trouble answering your question. Please try again later.', 'bot');
+      });
   }
 
   function displayChatbotMessage(message, sender) {
