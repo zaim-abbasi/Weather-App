@@ -5,19 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const weatherTable = document.getElementById('weather-table');
   const prevPageBtn = document.getElementById('prev-page');
   const nextPageBtn = document.getElementById('next-page');
+  const filterSelect = document.getElementById('filter-select');
 
   let currentPage = 1;
   const itemsPerPage = 5;
   let forecastData = [];
+  let originalForecastData = [];
 
-  // Fetch weather on "Enter" press
-  cityInput.addEventListener('keyup', debounce((e) => {
-    if (e.key === 'Enter' && cityInput.value.trim() !== '') {
-      fetchWeatherForecast(cityInput.value.trim());
-    }
-  }, 300));
+  // event listeners
+  cityInput.addEventListener('keyup', debounce(handleCityInput, 300));
+  geolocationBtn.addEventListener('click', handleGeolocation);
+  prevPageBtn.addEventListener('click', handlePrevPage);
+  nextPageBtn.addEventListener('click', handleNextPage);
+  filterSelect.addEventListener('change', handleFilterChange);
 
-  // Debounce to limit the number of API calls while typing
+  // debounce func
   function debounce(func, delay) {
     let timer;
     return function (...args) {
@@ -26,7 +28,48 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Fetch weather data from OpenWeather API
+  // handle city input
+  function handleCityInput(e) {
+    if (e.key === 'Enter' && cityInput.value.trim() !== '') {
+      fetchWeatherForecast(cityInput.value.trim());
+    }
+  }
+
+  // handle geolocation
+  function handleGeolocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => fetchWeatherForecast({ lat: position.coords.latitude, lon: position.coords.longitude }, true),
+        () => showError('unable to retrieve your location.')
+      );
+    } else {
+      showError('geolocation is not supported by your browser.');
+    }
+  }
+
+  // handle prev page
+  function handlePrevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      displayForecast(currentPage);
+    }
+  }
+
+  // handle next page
+  function handleNextPage() {
+    if (currentPage * itemsPerPage < forecastData.length) {
+      currentPage++;
+      displayForecast(currentPage);
+    }
+  }
+
+  // handle filter change
+  function handleFilterChange() {
+    const selectedFilter = filterSelect.value;
+    applyFilter(selectedFilter);
+  }
+
+  // fetch weather forecast
   function fetchWeatherForecast(query, isGeolocation = false) {
     const apiUrl = isGeolocation
       ? `https://api.openweathermap.org/data/2.5/forecast?lat=${query.lat}&lon=${query.lon}&units=metric&appid=${apiKey}`
@@ -36,19 +79,20 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(response => response.json())
       .then(data => {
         if (data.cod === '200') {
-          forecastData = aggregateForecastData(data.list);
+          originalForecastData = aggregateForecastData(data.list); // store original data
+          forecastData = [...originalForecastData]; // reset forecast data
           displayForecast(currentPage);
         } else {
-          showError('City not found. Please try again.');
+          showError('city not found. please try again.');
         }
       })
       .catch(error => {
-        console.error('Error fetching weather forecast:', error);
-        showError('Unable to fetch weather data. Please try again later.');
+        console.error('error fetching weather forecast:', error);
+        showError('unable to fetch weather data. please try again later.');
       });
   }
 
-  // Aggregate forecast data to group by date
+  // aggregate forecast data
   function aggregateForecastData(data) {
     const dateMap = new Map();
 
@@ -73,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return Array.from(dateMap.values());
   }
 
-  // Display forecast data in a paginated table
+  // display forecast data
   function displayForecast(page) {
     const start = (page - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -92,52 +136,49 @@ document.addEventListener('DOMContentLoaded', () => {
       tableBody.appendChild(row);
     });
 
-    // Update button states for pagination
     updatePaginationButtons();
   }
 
+  // update pagination buttons
   function updatePaginationButtons() {
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage * itemsPerPage >= forecastData.length;
   }
 
-  // Handle pagination
-  prevPageBtn.addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      displayForecast(currentPage);
-    }
-  });
-
-  nextPageBtn.addEventListener('click', () => {
-    if (currentPage * itemsPerPage < forecastData.length) {
-      currentPage++;
-      displayForecast(currentPage);
-    }
-  });
-
-  // Fetch weather data using geolocation
-  geolocationBtn.addEventListener('click', () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(position => {
-        fetchWeatherForecast({ lat: position.coords.latitude, lon: position.coords.longitude }, true);
-      }, () => {
-        showError('Unable to retrieve your location.');
-      });
-    } else {
-      showError('Geolocation is not supported by your browser.');
-    }
-  });
-
-  // Display error messages
+  // show error messages
   function showError(message) {
     alert(message);
   }
 
-  // Fetch default weather for Islamabad on page load
+  // apply filter
+  function applyFilter(filter) {
+    forecastData = [...originalForecastData]; // reset to original data
+
+    switch (filter) {
+      case 'ascending':
+        forecastData.sort((a, b) => a.currentTemp - b.currentTemp);
+        break;
+      case 'descending':
+        forecastData.sort((a, b) => b.currentTemp - a.currentTemp);
+        break;
+      case 'rain':
+        forecastData = forecastData.filter(forecast => forecast.weather.toLowerCase().includes('rain'));
+        break;
+      case 'highest':
+        const highestTempDay = forecastData.reduce((max, forecast) => (forecast.maxTemp > max.maxTemp ? forecast : max), forecastData[0]);
+        forecastData = [highestTempDay];
+        break;
+      default:
+        break;
+    }
+    currentPage = 1; // reset to first page
+    displayForecast(currentPage);
+  }
+
+  // fetch default weather
   function fetchDefaultWeather() {
     fetchWeatherForecast('Islamabad');
   }
 
-  fetchDefaultWeather(); // Initial fetch
+  fetchDefaultWeather(); // initial fetch
 });

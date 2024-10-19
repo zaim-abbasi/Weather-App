@@ -2,15 +2,18 @@
 <html lang="en">
 
 <head>
+  <!-- Meta Tags -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weather Chatbot</title>
+
+  <!-- External Stylesheets -->
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/table.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-  <!-- Add the importmap script for Gemini API -->
+  <!-- Importmap Script for Gemini API -->
   <script type="importmap">
     {
       "imports": {
@@ -30,8 +33,9 @@
     </ul>
   </div>
 
-  <!-- Main content -->
+  <!-- Main Content -->
   <div class="main-content">
+    <!-- Weather Search -->
     <div class="weather-search">
       <input type="text" id="city-input" placeholder="Enter city name">
       <span class="pin-icon" id="geolocation-btn"><i class="fas fa-map-marker-alt"></i></span>
@@ -43,6 +47,15 @@
       <!-- Left Panel: 5-Day Weather Forecast -->
       <div class="left-panel">
         <h2>5-Day Weather Forecast</h2>
+        <div class="filters">
+          <select id="filter-select">
+            <option value="default">Filters</option>
+            <option value="ascending">Temperatures in Ascending Order</option>
+            <option value="descending">Temperatures in Descending Order</option>
+            <option value="rain">Filter Out Days Without Rain</option>
+            <option value="highest">Show Day with Highest Temperature</option>
+          </select>
+        </div>
         <div class="forecast-container">
           <table id="weather-table">
             <thead>
@@ -55,7 +68,7 @@
               </tr>
             </thead>
             <tbody>
-              <!-- Table rows will be populated here -->
+              <!-- Table rows -->
             </tbody>
           </table>
           <div class="pagination">
@@ -69,7 +82,6 @@
       <div class="right-panel">
         <h2>Chatbot</h2>
         <div class="chatbot-container">
-          <!-- Chatbot UI will be implemented here -->
           <div class="chat-window">
             <div class="chat-messages"></div>
             <div class="chat-input-container">
@@ -82,8 +94,8 @@
     </div>
   </div>
 
+  <!-- JavaScript Files -->
   <script src="js/table.js"></script>
-  
   <script type="module" src="js/chatbot.js"></script>
 
 </body>

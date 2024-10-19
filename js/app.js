@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const weatherImage = document.getElementById('weather-image');
     const weatherWidget = document.getElementById('weather-widget');
 
-    // Fetch weather when city is selected
+    // fetch weather when city is selected
     cityInput.addEventListener('keyup', function (e) {
         const city = cityInput.value;
 
@@ -14,43 +14,55 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Fetch weather data by city name
+    // fetch weather data by city name
     function fetchWeatherData(city) {
         if (city === '') {
-            alert('Please enter a city name');
+            alert('please enter a city name');
             return;
         }
 
         fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`)
             .then(response => response.json())
             .then(data => {
-                const cityName = data.name;
-                const temp = data.main.temp;
-                const humidity = data.main.humidity;
-                const windSpeed = data.wind.speed;
-                const description = data.weather[0].description;
-                const iconCode = data.weather[0].icon;
-                const weatherMain = data.weather[0].main.toLowerCase();
-
-                document.getElementById('city-name').textContent = cityName;
-                document.getElementById('temperature').textContent = temp;
-                document.getElementById('humidity').textContent = humidity;
-                document.getElementById('wind-speed').textContent = windSpeed;
-                document.getElementById('weather-description').textContent = description;
-                weatherImage.src = `http://openweathermap.org/img/wn/${iconCode.replace('d', 'n')}@2x.png`; // Use night icon
-
-                // Update widget background based on weather condition
-                weatherWidget.className = `weather-widget ${weatherMain}`;
-
+                updateWeatherWidget(data);
                 updateCharts();
             })
             .catch(error => {
-                // console.error('Error fetching data:', error);
-                // alert('City not found or API error');
+                console.error('error fetching data:', error);
+                alert('city not found or api error');
             });
     }
 
-    // Geolocation button: fetch current location weather
+    // update weather widget with fetched data
+    function updateWeatherWidget(data) {
+        const cityName = data.name;
+        const temp = data.main.temp;
+        const humidity = data.main.humidity;
+        const windSpeed = data.wind.speed;
+        const description = data.weather[0].description;
+        const iconCode = data.weather[0].icon;
+        const weatherMain = data.weather[0].main.toLowerCase();
+
+        document.getElementById('city-name').textContent = cityName;
+        document.getElementById('temperature').textContent = temp;
+        document.getElementById('humidity').textContent = humidity;
+        document.getElementById('wind-speed').textContent = windSpeed;
+        document.getElementById('weather-description').textContent = description;
+        // weatherImage.src = `http://openweathermap.org/img/wn/${iconCode.replace('d', 'n')}@2x.png`; // use night icon
+
+        if (description.toLowerCase() !== 'clear sky') {
+            weatherImage.src = `http://openweathermap.org/img/wn/${iconCode.replace('d', 'n')}@2x.png`; // use night icon
+            weatherImage.style.opacity = 1; // Ensure the image is visible
+        } else {
+            weatherImage.src = `http://openweathermap.org/img/wn/${iconCode.replace('d', 'n')}@2x.png`; // Set the src to avoid broken image icon
+            weatherImage.style.opacity = 0; // Make the image transparent
+        }
+
+        // update widget background based on weather condition
+        weatherWidget.className = `weather-widget ${weatherMain}`;
+    }
+
+    // geolocation button: fetch current location weather
     geolocationBtn.addEventListener('click', () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
@@ -59,73 +71,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`)
                     .then(response => response.json())
                     .then(data => {
-                        const cityName = data.name;
-                        const temp = data.main.temp;
-                        const humidity = data.main.humidity;
-                        const windSpeed = data.wind.speed;
-                        const description = data.weather[0].description;
-                        const iconCode = data.weather[0].icon;
-                        const weatherMain = data.weather[0].main.toLowerCase();
-
-                        document.getElementById('city-name').textContent = cityName;
-                        document.getElementById('temperature').textContent = temp;
-                        document.getElementById('humidity').textContent = humidity;
-                        document.getElementById('wind-speed').textContent = windSpeed;
-                        document.getElementById('weather-description').textContent = description;
-                        weatherImage.src = `http://openweathermap.org/img/wn/${iconCode.replace('d', 'n')}@2x.png`; // Use night icon
-
-                        // Update widget background based on weather condition
-                        weatherWidget.className = `weather-widget ${weatherMain}`;
-
+                        updateWeatherWidget(data);
                         updateCharts();
                     });
             });
         } else {
-            alert('Geolocation is not supported by your browser');
+            alert('geolocation is not supported by your browser');
         }
     });
 
-    // Fetch weather data for Islamabad by default
+    // fetch weather data for islamabad by default
     function fetchDefaultWeather() {
         fetch(`https://api.openweathermap.org/data/2.5/weather?q=Islamabad&units=metric&appid=${apiKey}`)
             .then(response => response.json())
             .then(data => {
-                const cityName = data.name;
-                const temp = data.main.temp;
-                const humidity = data.main.humidity;
-                const windSpeed = data.wind.speed;
-                const description = data.weather[0].description;
-                const iconCode = data.weather[0].icon;
-                const weatherMain = data.weather[0].main.toLowerCase();
-
-                document.getElementById('city-name').textContent = cityName;
-                document.getElementById('temperature').textContent = temp;
-                document.getElementById('humidity').textContent = humidity;
-                document.getElementById('wind-speed').textContent = windSpeed;
-                document.getElementById('weather-description').textContent = description;
-                weatherImage.src = `http://openweathermap.org/img/wn/${iconCode.replace('d', 'n')}@2x.png`; // Use night icon
-
-                // Update widget background based on weather condition
-                weatherWidget.className = `weather-widget ${weatherMain}`;
-
+                updateWeatherWidget(data);
                 updateCharts();
             })
             .catch(error => {
-                console.error('Error fetching default weather data:', error);
-                alert('Unable to fetch default weather data');
+                console.error('error fetching default weather data:', error);
+                alert('unable to fetch default weather data');
             });
     }
 
-    // Call fetchDefaultWeather when the page loads
+    // call fetchdefaultweather when the page loads
     fetchDefaultWeather();
 
-    let barChartInstance, doughnutChartInstance, lineChartInstance; // Variables to store chart instances
+    let barChartInstance, doughnutChartInstance, lineChartInstance; // variables to store chart instances
 
     function updateCharts() {
-        const apiKey = 'a7b7da5beed5ede7c6186250d2f136ac';
         const city = document.getElementById('city-name').textContent;
 
-        // Fetch weather data for the next 5 days
+        // fetch weather data for the next 5 days
         fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`)
             .then(response => response.json())
             .then(data => {
@@ -134,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const weatherConditionData = { sunny: 0, cloudy: 0, rainy: 0 };
                 const tempChanges = [];
 
-                // Process the data
+                // process the data
                 forecasts.forEach((forecast, index) => {
                     const temp = forecast.main.temp;
                     const weatherMain = forecast.weather[0].main.toLowerCase();
@@ -155,12 +132,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const ctx2 = document.getElementById('doughnutChart').getContext('2d');
                 const ctx3 = document.getElementById('lineChart').getContext('2d');
 
-                // Destroy existing chart instances if they exist
+                // destroy existing chart instances if they exist
                 if (barChartInstance) barChartInstance.destroy();
                 if (doughnutChartInstance) doughnutChartInstance.destroy();
                 if (lineChartInstance) lineChartInstance.destroy();
 
-                // Generate day names based on today's date
+                // generate day names based on today's date
                 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                 const today = new Date();
                 const dayNames = [];
@@ -168,20 +145,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     dayNames.push(daysOfWeek[(today.getDay() + i) % 7]);
                 }
 
-                // Consistent color scheme
+                // consistent color scheme
                 const colors = {
-                    primary: '#fdd835', // light Blue
-                    secondary: '#6c757d', // Green
-                    tertiary: '#17a2b8', // Teal
-                    background: '#2e2e2e', // Dark gray
-                    text: '#ffffff' // White
+                    primary: '#fdd835', // light blue
+                    secondary: '#6c757d', // green
+                    tertiary: '#17a2b8', // teal
+                    background: '#2e2e2e', // dark gray
+                    text: '#ffffff' // white
                 };
 
-                const chartColor = '#8e44ad'; // Example color: muted purple
+                const chartColor = '#8e44ad'; // example color: muted purple
+                const barChartColor = '#4e73df'; // example color: muted blue
 
-                const barChartColor = '#4e73df'; // Example color: muted blue
-
-                // Create new bar chart instance
+                // create new bar chart instance
                 barChartInstance = new Chart(ctx1, {
                     type: 'bar',
                     data: {
@@ -192,16 +168,16 @@ document.addEventListener('DOMContentLoaded', function () {
                             backgroundColor: (context) => {
                                 const ctx = context.chart.ctx;
                                 const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
-                                gradient.addColorStop(0, barChartColor); // Start color
-                                gradient.addColorStop(1, 'rgba(78, 115, 223, 0.5)'); // End color with transparency
+                                gradient.addColorStop(0, barChartColor); // start color
+                                gradient.addColorStop(1, 'rgba(78, 115, 223, 0.5)'); // end color with transparency
                                 return gradient;
                             },
-                            borderColor: colors.lightGray, // Use light gray for borders
-                            borderWidth: 2, // Thicker border
-                            borderRadius: 5, // Rounded edges
-                            hoverBackgroundColor: barChartColor, // Hover background color
-                            hoverBorderColor: colors.lightGray, // Hover border color
-                            hoverBorderWidth: 3 // Thicker hover border
+                            borderColor: colors.lightGray, // use light gray for borders
+                            borderWidth: 2, // thicker border
+                            borderRadius: 5, // rounded edges
+                            hoverBackgroundColor: barChartColor, // hover background color
+                            hoverBorderColor: colors.lightGray, // hover border color
+                            hoverBorderWidth: 3 // thicker hover border
                         }]
                     },
                     options: {
@@ -212,8 +188,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     color: colors.text
                                 },
                                 grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)', // Subtle grid lines
-                                    borderDash: [5, 5] // Dashed grid lines
+                                    color: 'rgba(255, 255, 255, 0.1)', // subtle grid lines
+                                    borderDash: [5, 5] // dashed grid lines
                                 }
                             },
                             x: {
@@ -221,8 +197,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     color: colors.text
                                 },
                                 grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)', // Subtle grid lines
-                                    borderDash: [5, 5] // Dashed grid lines
+                                    color: 'rgba(255, 255, 255, 0.1)', // subtle grid lines
+                                    borderDash: [5, 5] // dashed grid lines
                                 }
                             }
                         },
@@ -241,13 +217,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
 
+                // define separate colors for the doughnut chart segments
+                const sunnyColor = '#f39c12'; // example color: muted sunny
+                const cloudyColor = '#7f8c8d'; // example color: muted cloudy
+                const rainyColor = '#3498db'; // example color: muted rainy
 
-                // Define separate colors for the doughnut chart segments
-                const sunnyColor = '#f39c12'; // Example color: muted sunny
-                const cloudyColor = '#7f8c8d'; // Example color: muted cloudy
-                const rainyColor = '#3498db'; // Example color: muted rainy
-
-                // Create new doughnut chart instance
+                // create new doughnut chart instance
                 doughnutChartInstance = new Chart(ctx2, {
                     type: 'doughnut',
                     data: {
@@ -255,27 +230,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         datasets: [{
                             data: [weatherConditionData.sunny, weatherConditionData.cloudy, weatherConditionData.rainy],
                             backgroundColor: [
-                                sunnyColor, // Sunny segment
-                                cloudyColor, // Cloudy segment
-                                rainyColor // Rainy segment
+                                sunnyColor, // sunny segment
+                                cloudyColor, // cloudy segment
+                                rainyColor // rainy segment
                             ],
                             borderColor: [
-                                sunnyColor, // Sunny segment
-                                cloudyColor, // Cloudy segment
-                                rainyColor // Rainy segment
+                                sunnyColor, // sunny segment
+                                cloudyColor, // cloudy segment
+                                rainyColor // rainy segment
                             ],
-                            borderWidth: 2, // Thicker border for modern look
+                            borderWidth: 2, // thicker border for modern look
                             hoverBackgroundColor: [
-                                sunnyColor, // Sunny segment
-                                cloudyColor, // Cloudy segment
-                                rainyColor // Rainy segment
+                                sunnyColor, // sunny segment
+                                cloudyColor, // cloudy segment
+                                rainyColor // rainy segment
                             ],
                             hoverBorderColor: [
-                                sunnyColor, // Sunny segment
-                                cloudyColor, // Cloudy segment
-                                rainyColor // Rainy segment
+                                sunnyColor, // sunny segment
+                                cloudyColor, // cloudy segment
+                                rainyColor // rainy segment
                             ],
-                            hoverBorderWidth: 3 // Thicker hover border
+                            hoverBorderWidth: 3 // thicker hover border
                         }]
                     },
                     options: {
@@ -288,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         weight: 'bold'
                                     }
                                 },
-                                position: 'bottom' // Position legend at the bottom
+                                position: 'bottom' // position legend at the bottom
                             },
                             tooltip: {
                                 callbacks: {
@@ -308,22 +283,22 @@ document.addEventListener('DOMContentLoaded', function () {
                                 bodyFont: {
                                     size: 14
                                 },
-                                backgroundColor: 'rgba(0, 0, 0, 0.7)', // Tooltip background color
-                                titleColor: colors.text, // Tooltip title color
-                                bodyColor: colors.text // Tooltip body color
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)', // tooltip background color
+                                titleColor: colors.text, // tooltip title color
+                                bodyColor: colors.text // tooltip body color
                             }
                         },
                         animation: {
-                            animateRotate: true, // Enable rotation animation
-                            animateScale: true // Enable scaling animation
+                            animateRotate: true, // enable rotation animation
+                            animateScale: true // enable scaling animation
                         },
-                        cutout: '60%', // Create a doughnut shape with a hole in the center
-                        rotation: -0.5 * Math.PI, // Rotate the chart for a modern look
-                        // circumference: 1.5 * Math.PI // Adjust the circumference for a modern look
+                        cutout: '60%', // create a doughnut shape with a hole in the center
+                        rotation: -0.5 * Math.PI, // rotate the chart for a modern look
+                        // circumference: 1.5 * Math.PI // adjust the circumference for a modern look
                     }
                 });
 
-                // Create new line chart instance
+                // create new line chart instance
                 lineChartInstance = new Chart(ctx3, {
                     type: 'line',
                     data: {
@@ -331,12 +306,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         datasets: [{
                             label: 'Temperature Changes (°C)',
                             data: tempChanges.slice(0, 5),
-                            borderColor: chartColor, // Use the same color here
+                            borderColor: chartColor, // use the same color here
                             backgroundColor: (context) => {
                                 const ctx = context.chart.ctx;
                                 const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
-                                gradient.addColorStop(0, 'rgba(142, 68, 173, 0.5)'); // Start color with transparency
-                                gradient.addColorStop(1, 'rgba(142, 68, 173, 0)'); // End color with transparency
+                                gradient.addColorStop(0, 'rgba(142, 68, 173, 0.5)'); // start color with transparency
+                                gradient.addColorStop(1, 'rgba(142, 68, 173, 0)'); // end color with transparency
                                 return gradient;
                             },
                             fill: true,
@@ -344,10 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             pointBorderColor: colors.text,
                             pointHoverBackgroundColor: colors.text,
                             pointHoverBorderColor: chartColor,
-                            borderWidth: 3, // Thicker border for modern look
-                            borderJoinStyle: 'round', // Rounded corners
-                            pointRadius: 5, // Larger points
-                            pointHoverRadius: 7 // Larger hover points
+                            borderWidth: 3, // thicker border for modern look
+                            borderJoinStyle: 'round', // rounded corners
+                            pointRadius: 5, // larger points
+                            pointHoverRadius: 7 // larger hover points
                         }]
                     },
                     options: {
@@ -402,9 +377,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             })
             .catch(error => {
-                console.error('Error fetching weather forecast data:', error);
-                alert('Unable to fetch weather forecast data');
+                console.error('error fetching weather forecast data:', error);
+                alert('unable to fetch weather forecast data');
             });
     }
-
 });
