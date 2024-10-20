@@ -106,4 +106,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for more 
 
 ---
 
-For any questions or support, please contact [Zaim Abbasi] at [zaim.k.abbasi@gmail.com].
+For any questions or support, please contact Zaim Abbasi at zaim.k.abbasi@gmail.com.
